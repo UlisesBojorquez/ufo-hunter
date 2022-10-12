@@ -1,6 +1,6 @@
 import * as THREE from 'three';
-import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls';
-import {Water} from 'three/examples/jsm/objects/Water';
+import {OrbitControls} from "three/addons/controls/OrbitControls.js";
+import {Water} from "three/addons/objects/Water.js";
 
 /* CREATE SCENE */
 const scene = new THREE.Scene();
@@ -198,8 +198,30 @@ function animate() {
 animate();
 
 /* EVENTS */
-addEventListener('mousemove', (event) => {
+document.addEventListener('mousemove', (event) => {
   // Normalize x and y coordinates
   mouse.x = (event.clientX / innerWidth) * 2 - 1;
   mouse.y = -(event.clientY / innerHeight) * 2 + 1;
+});
+
+document.addEventListener('keydown', (event) => {
+  const key = event.key;
+  const speed = 2.0;
+  const step = speed * (performance.now() * 0.001);
+  if (key === 'w') {
+    capsuleMesh.position.x += step;
+    bodyMesh.position.x += step;
+  }
+  if (key === 's') {
+    capsuleMesh.position.x -= step;
+    bodyMesh.position.x -= step;
+  }
+  if (key === 'a') {
+    capsuleMesh.position.z -= step;
+    bodyMesh.position.z -= step;
+  }
+  if (key === 'd') {
+    capsuleMesh.position.z += step;
+    bodyMesh.position.z += step;
+  }
 });
