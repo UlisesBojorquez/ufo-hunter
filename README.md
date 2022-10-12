@@ -13,3 +13,4 @@ Francisco Salgado Guízar - A01365047
 ## Creditos
 
 Texturas para los planetas obtenidas de [SolarSystemScope](https://www.solarsystemscope.com/textures/)
+Shaders del agua obtenidas de [ShadersOcean](https://threejs.org/examples/webgl_shaders_ocean.html)
