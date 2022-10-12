@@ -1,5 +1,7 @@
 # Ufo Hunter
 
+El Ovni se mueve usando las teclas WASD
+
 ## Hecho por
 
 Ulises Bojórquez Ortiz - A01114716
