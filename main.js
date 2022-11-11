@@ -13,7 +13,7 @@ const camera = new THREE.PerspectiveCamera(
   1000
 );
 // camera.position.z = 50;
-camera.position.set(40, 40, 100);
+camera.position.set(0, 100, 100);
 
 /* CREATE RENDER */
 const renderer = new THREE.WebGLRenderer();
@@ -88,19 +88,75 @@ scene.add(water);
 
 /* DEFINE OVNI CAPSULE */
 const capsuleGeometry = new THREE.CapsuleGeometry(5, 0, 32, 48);
-const capsuleMaterial = new THREE.MeshBasicMaterial({color: 0x00ff00});
+const capsuleMaterial = new THREE.MeshBasicMaterial(
+  {
+  map: new THREE.TextureLoader().load('ovni_textures/metal.jpg'),
+  //envMap: new THREE.TextureLoader().load('ovni_textures/reflection.jpg'),
+  //reflectivity: 0.5,
+  //combine: MultiplyOperation,
+  //color: 0xffffff
+}
+);
 const capsuleMesh = new THREE.Mesh(capsuleGeometry, capsuleMaterial);
 capsuleMesh.position.y = 10;
 scene.add(capsuleMesh);
 
 /* DEFINE OVNI BODY */
 const bodyGeometry = new THREE.CircleGeometry(12, 48);
-const bodyMaterial = new THREE.MeshBasicMaterial({color: 0xffff00, side: THREE.DoubleSide});
+//const bodyMaterial = new THREE.MeshBasicMaterial({color: 0xffff00, side: THREE.DoubleSide});
+const bodyMaterial = new THREE.MeshBasicMaterial(
+  {
+    map: new THREE.TextureLoader().load('ovni_textures/body_surface.jpg'),
+    side: THREE.DoubleSide,
+    transparent: true,
+    opacity: 0.50
+  }
+);
 const bodyMesh = new THREE.Mesh(bodyGeometry, bodyMaterial);
 bodyMesh.position.y = 10;
 bodyMesh.rotateX(Math.PI / 2);
 scene.add(bodyMesh);
 
+/* DEFINE OVNI LIGHT */
+const lightGeometry = new THREE.ConeGeometry(2, 10, 60, 1, true, 0);
+const lightMaterial = new THREE.MeshBasicMaterial(
+  {
+    color: 0x1ac0d6,
+    transparent: true,
+    opacity: 0.30
+  }
+);
+const lightMesh = new THREE.Mesh(lightGeometry, lightMaterial);
+lightMesh.position.y = 5;
+scene.add(lightMesh);
+
+let opacity_upper_limit = false;
+
+function animateOvni() {
+  let time = 0;
+  time = performance.now() * 0.001;
+  capsuleMesh.rotation.y = time * 0.5;
+  bodyMesh.rotation.z = time;
+  
+  if(lightMesh.material.opacity >= 0.30 && !opacity_upper_limit){
+    lightMesh.material.opacity += 0.005;
+  }
+
+  if(lightMesh.material.opacity >= 0.90 && !opacity_upper_limit){
+    opacity_upper_limit = true;
+    lightMesh.material.opacity -= 0.01;
+  }
+
+  if(lightMesh.material.opacity <= 0.90 && opacity_upper_limit)
+    lightMesh.material.opacity -=0.01;
+
+  if(lightMesh.material.opacity <= 0.30 && opacity_upper_limit){
+    opacity_upper_limit = false;
+    lightMesh.material.opacity += 0.01;
+  }  
+}
+
+/* Add directional Light */
 const directionalLight = new THREE.SpotLight(0xffffff, 100, 100, 180);
 directionalLight.position.set(0, 48, 0);
 directionalLight.rotateY(180);
@@ -190,6 +246,7 @@ function animate() {
 
   animateCubes();
   animatePlanets();
+  animateOvni();
   water.material.uniforms['time'].value += 1.0 / 60.0;
 
   stars.rotation.x += 0.001; // rotate stars
@@ -204,24 +261,61 @@ document.addEventListener('mousemove', (event) => {
   mouse.y = -(event.clientY / innerHeight) * 2 + 1;
 });
 
+function removeEntity(object){
+  var selectedObject = scene.getObjectById(object.id);
+  scene.remove( selectedObject );
+}
+
+function detectCollisionCubes(object1, object2){
+  object1.geometry.computeBoundingBox();
+  object2.geometry.computeBoundingBox();
+  object1.updateMatrixWorld();
+  object2.updateMatrixWorld();
+  
+  var box1 = object1.geometry.boundingBox.clone();
+  box1.applyMatrix4(object1.matrixWorld);
+
+  var box2 = object2.geometry.boundingBox.clone();
+  box2.applyMatrix4(object2.matrixWorld);
+
+  return box1.intersectsBox(box2);
+}
+
+function findCollision(){
+  for(let i = 0; i < cubes.length; i++){
+    if(detectCollisionCubes(capsuleMesh, cubes[i]) || detectCollisionCubes(bodyMesh, cubes[i])){
+      removeEntity(cubes[i]);
+    }
+  }
+}
+
 document.addEventListener('keydown', (event) => {
   const key = event.key;
   const speed = 2.0;
-  const step = speed * (performance.now() * 0.001);
+  //const step = speed * (performance.now() * 0.001);
+  const step = speed * 10
   if (key === 'w') {
-    capsuleMesh.position.x += step;
-    bodyMesh.position.x += step;
-  }
-  if (key === 's') {
-    capsuleMesh.position.x -= step;
-    bodyMesh.position.x -= step;
-  }
-  if (key === 'a') {
     capsuleMesh.position.z -= step;
     bodyMesh.position.z -= step;
+    lightMesh.position.z -= step;
+    findCollision();
   }
-  if (key === 'd') {
+  if (key === 's') {
     capsuleMesh.position.z += step;
     bodyMesh.position.z += step;
+    lightMesh.position.z += step;
+    findCollision();
+  }
+  if (key === 'a') {
+    capsuleMesh.position.x -= step;
+    bodyMesh.position.x -= step;
+    lightMesh.position.x -= step;
+    findCollision();
+  }
+  if (key === 'd') {
+    capsuleMesh.position.x += step;
+    bodyMesh.position.x += step;
+    lightMesh.position.x += step;
+    findCollision();
   }
 });
