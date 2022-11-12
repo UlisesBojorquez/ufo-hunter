@@ -91,10 +91,6 @@ const capsuleGeometry = new THREE.CapsuleGeometry(5, 0, 32, 48);
 const capsuleMaterial = new THREE.MeshBasicMaterial(
   {
   map: new THREE.TextureLoader().load('ovni_textures/metal.jpg'),
-  //envMap: new THREE.TextureLoader().load('ovni_textures/reflection.jpg'),
-  //reflectivity: 0.5,
-  //combine: MultiplyOperation,
-  //color: 0xffffff
 }
 );
 const capsuleMesh = new THREE.Mesh(capsuleGeometry, capsuleMaterial);
@@ -103,7 +99,6 @@ scene.add(capsuleMesh);
 
 /* DEFINE OVNI BODY */
 const bodyGeometry = new THREE.CircleGeometry(12, 48);
-//const bodyMaterial = new THREE.MeshBasicMaterial({color: 0xffff00, side: THREE.DoubleSide});
 const bodyMaterial = new THREE.MeshBasicMaterial(
   {
     map: new THREE.TextureLoader().load('ovni_textures/body_surface.jpg'),
@@ -292,7 +287,6 @@ function findCollision(){
 document.addEventListener('keydown', (event) => {
   const key = event.key;
   const speed = 2.0;
-  //const step = speed * (performance.now() * 0.001);
   const step = speed * 10
   if (key === 'w') {
     capsuleMesh.position.z -= step;
