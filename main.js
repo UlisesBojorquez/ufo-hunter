@@ -14,6 +14,8 @@ const camera = new THREE.PerspectiveCamera(
 );
 // camera.position.z = 50;
 camera.position.set(0, 100, 100);
+const listener = new THREE.AudioListener();
+camera.add( listener );
 
 /* CREATE RENDER */
 const renderer = new THREE.WebGLRenderer();
@@ -276,10 +278,31 @@ function detectCollisionCubes(object1, object2){
   return box1.intersectsBox(box2);
 }
 
+const destroyed_cubes = [];
+
+for(let i = 0; i < cubes.length; i++){
+  destroyed_cubes.push(false);
+}
+
 function findCollision(){
   for(let i = 0; i < cubes.length; i++){
-    if(detectCollisionCubes(capsuleMesh, cubes[i]) || detectCollisionCubes(bodyMesh, cubes[i])){
+    if((detectCollisionCubes(capsuleMesh, cubes[i]) || detectCollisionCubes(bodyMesh, cubes[i])) && (!destroyed_cubes[i])){
+      const sound_box = new THREE.PositionalAudio( listener );
+
+      const audioLoader_box = new THREE.AudioLoader();
+
+      audioLoader_box.load( 'sounds/box_collision.mp3', function( buffer ) {
+        sound_box.setBuffer( buffer );
+        sound_box.setRefDistance(10);
+        sound_box.setVolume( 1 );
+        sound_box.setLoop(false);
+        sound_box.play();
+      });
+      cubes[i].add(sound_box)
+      cubes[i].remove(sound_box);
+      cubes[i].clear();
       removeEntity(cubes[i]);
+      destroyed_cubes[i] = true;
     }
   }
 }
@@ -313,3 +336,31 @@ document.addEventListener('keydown', (event) => {
     findCollision();
   }
 });
+
+/* AUDIO */
+
+/*Ambient sound*/
+const sound = new THREE.Audio( listener );
+
+const audioLoader = new THREE.AudioLoader();
+
+audioLoader.load( 'sounds/ambient.mp3', function( buffer ) {
+	sound.setBuffer( buffer );
+	sound.setLoop( true );
+	sound.setVolume( 0.5 );
+	sound.play();
+});
+
+/*UFO Flying Sound*/
+const sound_UFO = new THREE.PositionalAudio( listener );
+
+const audioLoader_UFO = new THREE.AudioLoader();
+audioLoader_UFO.load( 'sounds/ufo.mp3', function( buffer ) {
+	sound_UFO.setBuffer( buffer );
+	sound_UFO.setRefDistance( 7 );
+  sound_UFO.setVolume(0.5);
+  sound_UFO.setLoop(true);
+	sound_UFO.play();
+});
+
+capsuleMesh.add(sound_UFO);
